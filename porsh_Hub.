@@ -1,0 +1,100 @@
+local Fluent = loadstring(game:HttpGet("https://github.com"))()
+
+local Window = Fluent:CreateWindow({
+    Title = "porsh_Hub",
+    SubTitle = "v1.0.0",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(580, 460),
+    Acrylic = true,
+    Theme = "Dark"
+})
+
+local Tabs = {
+    Main = Window:AddTab({ Title = "ระบบหลัก", Icon = "home" }),
+    CameramanTD = Window:AddTab({ Title = "Cameraman TD", Icon = "shield" }),
+    Settings = Window:AddTab({ Title = "ตั้งค่า", Icon = "settings" })
+}
+
+local function playSwordSound(isOn)
+    local sound = Instance.new("Sound")
+    if isOn then
+        sound.SoundId = "rbxassetid://9114223403" -- เสียงดาบปะทะกันเมื่อเปิด
+        sound.Pitch = 1.1
+        sound.Volume = 0.6
+    else
+        sound.SoundId = "rbxassetid://9114223403" -- เสียงดาบฟันเฉือนเมื่อปิด
+        sound.Pitch = 0.8
+        sound.Volume = 0.4
+    end
+    sound.Parent = game:GetService("SoundService")
+    sound:Play()
+    sound.Ended:Connect(function()
+        sound:Destroy()
+    end)
+end
+
+Tabs.Main:AddParagraph({
+    Title = "ยินดีต้อนรับสู่ porsh_Hub",
+    Content = "สคริปต์ฟรี ไม่มีระบบคีย์ให้รำคาญใจ พร้อมระบบเสียงฟันดาบแจ้งเตือนเมื่อเปิด/ปิดฟังก์ชัน"
+})
+
+Tabs.Main:AddButton({
+    Title = "รันสคริปต์หลัก (Execute Code)",
+    Description = "สั่งเปิดทำงานซอร์สโค้ดดั้งเดิม WeAreDevs ของคุณเบื้องหลัง",
+    Callback = function()
+        playSwordSound(true)
+        Fluent:Notify({ Title = "porsh_Hub", Content = "กำลังทำงานสคริปต์หลักเบื้องหลัง...", Duration = 3 })
+        loadstring(game:HttpGet("https://pastebin.com", true))()
+    end
+})
+
+-- 1. ระบบ Auto Skip Wave เฉพาะแมพ Cameraman TD
+local ToggleSkip = Tabs.CameramanTD:AddToggle("CameramanSkip", {Title = "Auto Skip Wave (ข้ามเวฟทันที)", Default = false })
+ToggleSkip:OnChanged(function(Value)
+    _G.CameramanAutoSkip = Value
+    playSwordSound(Value)
+    task.spawn(function()
+        while _G.CameramanAutoSkip do
+            task.wait(0.5)
+            pcall(function()
+                game:GetService("ReplicatedStorage").Net:GetService("RemoteEvent"):FireServer("SkipWave")
+            end)
+        end
+    end)
+end)
+
+-- 2. ระบบ Auto Upgrade ยูนิตของเราเอง
+local ToggleUpgrade = Tabs.CameramanTD:AddToggle("CameramanUpgrade", {Title = "Auto Upgrade (อัปเกรดยูนิตทั้งหมด)", Default = false })
+ToggleUpgrade:OnChanged(function(Value)
+    _G.CameramanAutoUpgrade = Value
+    playSwordSound(Value)
+    task.spawn(function()
+        while _G.CameramanAutoUpgrade do
+            task.wait(1)
+            pcall(function()
+                local localPlayer = game:GetService("Players").LocalPlayer
+                if game:GetService("Workspace"):FindFirstChild("Towers") then
+                    for _, unit in pairs(game:GetService("Workspace").Towers:GetChildren()) do
+                        if unit:FindFirstChild("Owner") and unit.Owner.Value == localPlayer.Name then
+                            game:GetService("ReplicatedStorage").Net:GetService("RemoteEvent"):FireServer("UpgradeTower", unit)
+                        end
+                    end
+                end
+            end)
+        end
+    end)
+end)
+
+-- 3. ปรับ WalkSpeed ความเร็วตัวละคร
+Tabs.CameramanTD:AddSlider("SpeedSlider", {
+    Title = "WalkSpeed (ปรับความเร็วเดิน)",
+    Description = "เพิ่มความเร็วการเคลื่อนที่ของตัวละคร",
+    Min = 16,
+    Max = 300,
+    Default = 16,
+    Callback = function(Value)
+        pcall(function()
+            game:GetService("Players").LocalPlayer.Character.Humanoid.WalkSpeed = Value
+        end)
+    end
+})
